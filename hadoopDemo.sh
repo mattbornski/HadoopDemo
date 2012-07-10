@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Parameters for the cluster we want to use
-CLUSTER_NAME="HadoopDemo"
+CLUSTER_NAME="hadoop-demo"
 
 # Data should already exist in this bucket.  Bucket must be readable by you, but need not be writable.
-DATA_BUCKET="HadoopDemo"
+DATA_BUCKET="hadoop-demo.bornski"
 DATA_FILE="userAgents.log"
 
 # Log bucket is optional.  If set, bucket must be writable by you.
 LOG_BUCKET=""
 
 # Results bucket is mandatory.  Bucket must be writable by you.
-RESULTS_BUCKET="HadoopDemo"
+RESULTS_BUCKET="hadoop-demo.bornski"
 
 # Check that we've got the right credentials configured for the AWS / S3 / EC2 / EMR scripts.
 ./ensureCredentials.sh
@@ -23,3 +23,4 @@ if [ -n "$LOG_BUCKET" ] ; then {
 ./ensureBucket.sh $RESULTS_BUCKET
 
 ./ensureCluster.sh $CLUSTER_NAME
+

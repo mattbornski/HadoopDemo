@@ -1,6 +1,6 @@
 #!/bin/bash
 
-./ensureCredentials.sh
+#./ensureCredentials.sh
 
 CLUSTER_NAME=$1
 OUT=`./thirdparty/elastic-mapreduce-ruby/elastic-mapreduce -c ~/.aws.json --list`
@@ -10,6 +10,28 @@ if [ -z "$JOB_FLOW_ID" ] ; then {
   echo "No running $CLUSTER_NAME cluster found"
   OUT=`./thirdparty/elastic-mapreduce-ruby/elastic-mapreduce -c ~/.aws.json --create --name $CLUSTER_NAME --pig-interactive --alive`
   JOB_FLOW_ID=`echo $OUT | grep "Created job flow" | awk '{print $NF}'`
+  echo "Starting $CLUSTER_NAME as job flow $JOB_FLOW_ID"
 }; fi
 
-echo "Cluster running as Job Flow ID = $JOB_FLOW_ID"
+# Wait until state is WAITING
+# Valid states along the way: STARTING, ...
+
+while : ; do {
+  OUT=`./thirdparty/elastic-mapreduce-ruby/elastic-mapreduce -c ~/.aws.json  --describe $JOB_FLOW_ID`
+  ERROR=`echo $OUT | python -c "import json, sys; out = json.loads(sys.stdin.read()); print out['JobFlows'][0]['ExecutionStatusDetail']['LastStateChangeReason'] if out['JobFlows'][0]['ExecutionStatusDetail']['State'] == 'FAILED' else ''; sys.exit(out['JobFlows'][0]['ExecutionStatusDetail']['State'] != 'WAITING')"`
+  if [ "$?" == "0" ] ; then {
+    # Success, the cluster is up and waiting.
+    break
+  } else {
+    if [ -n "$ERROR" ] ; then {
+      # Failure
+      echo $ERROR
+      exit 1
+    } else {
+      # Still waiting I think.
+      sleep 1
+    }; fi
+  }; fi
+}; done
+
+echo "Cluster running as job flow $JOB_FLOW_ID"
