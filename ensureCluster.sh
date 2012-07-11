@@ -1,16 +1,16 @@
 #!/bin/bash
 
-#./ensureCredentials.sh
+./ensureCredentials.sh
 
 CLUSTER_NAME=$1
 OUT=`./thirdparty/elastic-mapreduce-ruby/elastic-mapreduce -c ~/.aws.json --list`
 JOB_FLOW_ID=`echo $OUT | awk -v cluster_name="$CLUSTER_NAME" '{ for( i = 0; i <= NF; i++ ) if ( $i == cluster_name && ( $(i - 2) == "WAITING" || $(i - 2) == "STARTING" ) ) print $(i - 3) }'`
 
 if [ -z "$JOB_FLOW_ID" ] ; then {
-  echo "No running $CLUSTER_NAME cluster found"
+  echo "ensureCluster No running $CLUSTER_NAME cluster found"
   OUT=`./thirdparty/elastic-mapreduce-ruby/elastic-mapreduce -c ~/.aws.json --create --name $CLUSTER_NAME --pig-interactive --alive`
   JOB_FLOW_ID=`echo $OUT | grep "Created job flow" | awk '{print $NF}'`
-  echo "Starting $CLUSTER_NAME as job flow $JOB_FLOW_ID"
+  echo "ensureCluster Starting $CLUSTER_NAME as job flow $JOB_FLOW_ID"
 }; fi
 
 # Wait until state is WAITING
@@ -25,13 +25,14 @@ while : ; do {
   } else {
     if [ -n "$ERROR" ] ; then {
       # Failure
-      echo $ERROR
+      echo "ensureCluster Error in cluster startup"
+      echo "ensureCluster $ERROR"
       exit 1
     } else {
       # Still waiting I think.
-      sleep 1
+      sleep 5
     }; fi
   }; fi
 }; done
 
-echo "Cluster running as job flow $JOB_FLOW_ID"
+echo "ensureCluster Cluster running as job flow $JOB_FLOW_ID"

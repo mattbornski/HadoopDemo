@@ -12,6 +12,7 @@ LOG_BUCKET=""
 
 # Results bucket is mandatory.  Bucket must be writable by you.
 RESULTS_BUCKET="hadoop-demo.bornski"
+RESULTS_FILE="countedUserAgents.csv"
 
 # Check that we've got the right credentials configured for the AWS / S3 / EC2 / EMR scripts.
 ./ensureCredentials.sh
@@ -24,3 +25,6 @@ if [ -n "$LOG_BUCKET" ] ; then {
 
 ./ensureCluster.sh $CLUSTER_NAME
 
+./pigJob.sh $CLUSTER_NAME s3n://$DATA_BUCKET/countUserAgents.pig s3n://$DATA_BUCKET/$DATA_FILE s3n://$RESULTS_BUCKET/$RESULTS_FILE
+
+#./deleteCluster.sh $CLUSTER_NAME
